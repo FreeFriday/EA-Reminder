@@ -25,8 +25,8 @@ class Table(APIView):
     def get(self, request, format=None):
         # Error
         return Response({
-            'error': 'Please request by POST with id and password'
-        })
+            'error': 'Please request by POST with id and password',
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -39,8 +39,8 @@ class Table(APIView):
 
         else:
             return Response({
-                'error': 'Please give validate id and password'
-            })
+                'error': 'Please give validate id and password',
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 def get_table(request, USER_ID, USER_PW):
