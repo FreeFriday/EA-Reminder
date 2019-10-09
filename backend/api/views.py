@@ -59,6 +59,12 @@ def get_table(request, USER_ID, USER_PW):
     id_.send_keys(USER_ID)
     pw_.send_keys(USER_PW)
     login_.click()
+    # 로그인 실패시 에러 반환
+    if driver.current_url == "https://sso.snu.ac.kr/nls3/error.jsp?errorCode=5402":
+        return Response({
+            'error': 'The user info was not matched'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     driver.get('https://scard1.snu.ac.kr/eams/student/timetbl/timetblLst')
     try:
         span_ = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "span.tit")))
