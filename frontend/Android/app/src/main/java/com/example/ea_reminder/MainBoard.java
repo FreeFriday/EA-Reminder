@@ -118,7 +118,6 @@ public class MainBoard extends AppCompatActivity {
         rba = new RecyclerBoardAdapter(rblist,this);
         rv.setAdapter(rba);
 
-        //TODO: [개선 필요]: 강좌 수가 15개 이상이면 멈춤 가능성 있음=Thread나 AsyncTask 사용 고려
         //일괄 적용 스위치 설정
         sw_applyall.setChecked(allswitch);
         RecyclerBoardAdapter.swOnClickListener.setTimerButton(sw_applyall,b_time_all);

@@ -12,6 +12,7 @@ import android.database.Cursor;
 import android.media.Image;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -34,12 +35,15 @@ public class BoardSetting extends AppCompatActivity {
     ArrayList<RecyclerBoardSetting> rbslist; //강좌 정보가 있는 리스트
     RecyclerBoardSettingAdapter rbsa;
 
+    View rootlayout;
+    View whiteback;
+
     boolean res=false;
 
     SharedPreferences sp;
     boolean allsw = true;
     int allbt = 0;
-
+    int inityoffset = 100;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,7 +54,24 @@ public class BoardSetting extends AppCompatActivity {
         b_add = findViewById(R.id.b_add);
         b_deleteall = findViewById(R.id.b_deleteall);
 
+        rootlayout = findViewById(R.id.rootlayout);
         rv = findViewById(R.id.rv2);
+        whiteback = findViewById(R.id.whiteback);
+        inityoffset = rootlayout.getHeight()-rv.getHeight();
+
+        rootlayout.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                if(top-bottom!=oldTop-oldBottom){
+                    System.out.println("Layout change detected");
+                    ViewGroup.LayoutParams lp = rv.getLayoutParams();
+                    lp.height = (bottom-top)-inityoffset-whiteback.getHeight();
+                    System.out.println("Setting height: "+lp.height);
+                    rv.setLayoutParams(lp);
+                }
+
+            }
+        });
 
         LinearLayoutManager llm = new LinearLayoutManager(this);
         rv.setLayoutManager(llm);
@@ -90,7 +111,6 @@ public class BoardSetting extends AppCompatActivity {
             }
         });
 
-        //TODO: 일괄삭제 버튼 구현
         /*
         //Test case:
         for(int i=0;i<3;i++){

@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -16,7 +17,9 @@ import android.os.Debug;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.Display;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -37,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
 
     ProgressBar pbar;
 
+    View mainlayout;
+
     SharedPreferences sp; //아이디, 비번, 로그인 전적 저장 Preference
     SharedPreferences.Editor sped;
     public static final String requrl = "http://snu.axiss.xyz/api/table/";
@@ -45,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String pref_logined = "Logined";
     public static final String pref_id = "ID";
     public static final String pref_pw = "PW";
+
+    final float layoutwidth = 0.9f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,13 +63,18 @@ public class MainActivity extends AppCompatActivity {
         t_pw = (EditText)findViewById(R.id.t_pw);
         b_login = (Button)findViewById(R.id.b_login);
         pbar = (ProgressBar)findViewById(R.id.pBar);
+        mainlayout = findViewById(R.id.mainlayout);
 
         sp = getSharedPreferences(prefname,MODE_PRIVATE);
         sped = sp.edit();
         //System.out.println("Logined pref = "+sp.getBoolean("Logined",false));
-
-
-
+        Display dp = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        dp.getSize(size);
+        ViewGroup.LayoutParams lp = mainlayout.getLayoutParams();
+        lp.width = (int)(size.x*layoutwidth);
+        System.out.println("Layout width: "+lp.width);
+        mainlayout.setLayoutParams(lp);
 
         if(sp.contains(pref_logined)){
             go2board(null,null,null);
