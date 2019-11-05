@@ -32,8 +32,6 @@ public class MainBoard extends AppCompatActivity {
     TextView tx_applyall; //일괄적용 텍스트
     Button b_time_all; //알림 타이머 일괄적용 버튼
 
-    //TODO: [의견 필요]: 일괄적용 텍스트가 아닌 버튼을 사용?
-
     RecyclerView rv; //강좌 정보 담길 RecyclerView
 
     ArrayList<RecyclerBoard> rblist; //강좌 정보가 있는 리스트
@@ -47,6 +45,8 @@ public class MainBoard extends AppCompatActivity {
 
     Context context;
 
+    public static final String pref_allsw = "allsw";
+    public static final String pref_allbt = "allbw";
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -58,13 +58,13 @@ public class MainBoard extends AppCompatActivity {
         sped = sp.edit();
         ArrayList<String> name = new ArrayList<>();
         ArrayList<String> time = new ArrayList<>();
-        if(sp.getBoolean("allsw",false)){
+        if(sp.getBoolean(pref_allsw,false)){
             allswitch=true;
         }
-        if(sp.contains("allbt")){
-            alltimer = sp.getInt("allbt",0);
+        if(sp.contains(pref_allbt)){
+            alltimer = sp.getInt(pref_allbt,0);
         }
-        if(sp.getBoolean("Logined",false)){
+        if(sp.getBoolean(MainActivity.pref_logined,false)){
 
         }
         else{
@@ -84,11 +84,10 @@ public class MainBoard extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(),"MySNU 정보가 없습니다.\n아이디 혹은 비밀번호를 확인해주세요.",Toast.LENGTH_LONG).show();
                 finish();
             }
-            sped.putBoolean("Logined", true);
-            sped.putString("Login_id",id);
-            sped.putString("Login_pw",pw);
+            sped.putBoolean(MainActivity.pref_logined, true);
+            sped.putString(MainActivity.pref_id,id);
+            sped.putString(MainActivity.pref_pw,pw);
             sped.apply();
-            System.out.println("At Mainboard, Logined pref = "+sp.contains("Logined"));
             String nowname = null;
             String nowtime="";
             /*
@@ -111,7 +110,7 @@ public class MainBoard extends AppCompatActivity {
             BoardSetting.Add2DB(this,nowname,nowtime,"1:30",true,true,RecyclerBoard.TIMER_10MIN);
              */
             for(int i=0;i<name.size();i++){
-                BoardSetting.Add2DB(this,name.get(i),time.get(i),"1:30",true,true,RecyclerBoard.TIMER_10MIN);
+                BoardSetting.Add2DB(this,name.get(i),time.get(i),"1:30",true,false,RecyclerBoard.TIMER_10MIN);
             }
 
         }
@@ -151,7 +150,7 @@ public class MainBoard extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 allswitch = ((Switch)view).isChecked();
-                sped.putBoolean("allsw",allswitch);
+                sped.putBoolean(pref_allsw,allswitch);
                 sped.apply();
                 RecyclerBoardAdapter.swOnClickListener.setTimerButton((Switch)view,b_time_all);
                 for(int i=0;i<rba.swlist.size();i++){
@@ -168,7 +167,7 @@ public class MainBoard extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 alltimer=RecyclerBoardAdapter.btOnClickListener.incTimer(alltimer);
-                sped.putInt("allbt",alltimer);
+                sped.putInt(pref_allbt,alltimer);
                 sped.apply();
                 RecyclerBoardAdapter.btOnClickListener.setTimer(b_time_all,alltimer);
                 for(int i=0;i<rba.btlist.size();i++){

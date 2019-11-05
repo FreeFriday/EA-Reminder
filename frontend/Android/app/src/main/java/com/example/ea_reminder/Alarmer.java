@@ -63,6 +63,9 @@ public class Alarmer {
         AlarmManager alm = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, Alarm_notification.class);
         PendingIntent pintent = PendingIntent.getBroadcast(context,requestcode,intent,PendingIntent.FLAG_CANCEL_CURRENT);
-        alm.cancel(pintent);
+        if(pintent!=null){
+            pintent.cancel();
+            alm.cancel(pintent);
+        }
     }
 }

@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,6 +24,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONObject;
+import org.json.simple.parser.ParseException;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,9 +38,13 @@ public class MainActivity extends AppCompatActivity {
     ProgressBar pbar;
 
     SharedPreferences sp; //아이디, 비번, 로그인 전적 저장 Preference
-    public final String requrl = "http://snu.axiss.xyz/api/table/";
+    SharedPreferences.Editor sped;
+    public static final String requrl = "http://snu.axiss.xyz/api/table/";
 
     public static final String prefname = "LoginPref";
+    public static final String pref_logined = "Logined";
+    public static final String pref_id = "ID";
+    public static final String pref_pw = "PW";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,12 +58,13 @@ public class MainActivity extends AppCompatActivity {
         pbar = (ProgressBar)findViewById(R.id.pBar);
 
         sp = getSharedPreferences(prefname,MODE_PRIVATE);
+        sped = sp.edit();
         //System.out.println("Logined pref = "+sp.getBoolean("Logined",false));
 
 
 
 
-        if(sp.contains("Logined")){
+        if(sp.contains(pref_logined)){
             go2board(null,null,null);
             //TODO: 이미 로그인한 전적이 있다면 바로 시간표 창으로 이동
         }
@@ -71,13 +80,16 @@ public class MainActivity extends AppCompatActivity {
                     String packageName = getPackageName();
                     PowerManager pm = (PowerManager)getSystemService(POWER_SERVICE);
 
-                    if (pm.isIgnoringBatteryOptimizations(packageName))
-                        intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                    if (pm.isIgnoringBatteryOptimizations(packageName)) {
+                        //
+                        //intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                    }
                     else {
                         intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                         intent.setData(Uri.parse("package:" + packageName));
+                        startActivity(intent);
                     }
-                    startActivity(intent);
+
                 }
             });
             ad.show();
@@ -86,12 +98,8 @@ public class MainActivity extends AppCompatActivity {
         b_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /*
-                sp.edit().putString("MyID", t_id.getText().toString()); // 아이디 Preference에 저장
-                sp.edit().putString("MyPW", t_pw.getText().toString()); // 비번 Preference에 저장
-                */
 
-                //TODO: 서버에 로그인 요청 보내기
+                //서버에 로그인 요청 보내기
                 ContentValues values = new ContentValues();
                 values.put("id",t_id.getText().toString());
                 values.put("pw",t_pw.getText().toString());
@@ -99,9 +107,6 @@ public class MainActivity extends AppCompatActivity {
                 b_login.setVisibility(View.INVISIBLE);
                 logintask nt = new logintask(requrl,values,pbar,true);
                 nt.execute();
-                //TODO: [의견 필요]: 서버에 알림 설정 내용까지 저장?
-                //TODO: 결과 받으면 Prefrence 의 <Logined>값 True로 바꾸기
-                //TODO: 결과 가지고 시간표 창으로 이동
                 //go2board();
             }
         });
@@ -138,6 +143,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     void go2board (String res, String id, String pw){
+        sped.putString(pref_id, id); // 아이디 Preference에 저장
+        sped.putString(pref_pw, pw); // 비번 Preference에 저장
+        sped.apply();
+
         Intent intent2board = new Intent(getApplicationContext(), MainBoard.class);
         /*
         for(int i=0;i<classinfo.length;i++){
@@ -148,7 +157,57 @@ public class MainActivity extends AppCompatActivity {
         intent2board.putExtra("pw",pw);
         startActivityForResult(intent2board,6000);
     }
+    public static class staticlogintask extends AsyncTask<Void,Void,JSONObject>{
+        String url;
+        ContentValues values;
+        View pbar;
+        Context context;
+        ArrayList<String> name = new ArrayList<>();
+        ArrayList<String> time = new ArrayList<>();
+        public staticlogintask(String url, ContentValues values, View pbar, Context context,ArrayList<String> name, ArrayList<String> time){
+            this.url=url;
+            this.values=values;
+            this.pbar=pbar;
+            this.context = context;
+            this.name = name;
+            this.time = time;
+        }
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            HttpRequester hr = new HttpRequester();
+            System.out.println("Requested");
+            JSONObject res = hr.request(url,values);
+            return res;
+        }
+        @Override
+        protected void onPostExecute(JSONObject jsobj){
+            if(pbar!=null)pbar.setVisibility(View.INVISIBLE);
+            if(jsobj!=null){
+                try {
+                    JParser jp = new JParser();
+                    jp.boardinfoParse(jsobj.toString(),name,time);
+                } catch (ParseException e) {
+                    Toast.makeText(context,"MySNU 정보 오류입니다.\n다시 로그인 해 주세요.",Toast.LENGTH_LONG).show();
+                    return;
+                }
+                catch (RuntimeException e){
+                    Toast.makeText(context,"MySNU 정보가 없습니다.\n아이디 혹은 비밀번호를 확인해주세요.",Toast.LENGTH_LONG).show();
+                    return;
+                }
 
+                BoardSetting.DelDB(context);
+                for(int i=0;i<name.size();i++){
+                    BoardSetting.Add2DB(context,name.get(i),time.get(i),"1:30",true,false,RecyclerBoard.TIMER_10MIN);
+                }
+                Toast.makeText(context,"시간표가 초기화되었습니다.",Toast.LENGTH_LONG).show();
+                return;
+            }
+            else{
+                Toast.makeText(context,"로그인 실패.\n아이디와 비밀번호을 확인해주세요.",Toast.LENGTH_LONG).show();
+                return;
+            }
+        }
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if(resultCode == RESULT_OK){

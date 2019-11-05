@@ -158,6 +158,11 @@ public class BoardSetting extends AppCompatActivity {
         BoardDBOpenHelper bdboh = new BoardDBOpenHelper(context);
         bdboh.open();
         bdboh.create();
+        Cursor cursor = bdboh.selectcol();
+        while(cursor.moveToNext()){
+            long nowid = cursor.getLong(0);
+            Alarmer.deletealarm(context,(int)nowid);
+        }
         bdboh.DelDB();
     }
     public void setres(){
