@@ -108,8 +108,9 @@ public class RecyclerBoardAdapter extends RecyclerView.Adapter<RecyclerBoardAdap
             RecyclerBoard rb = rblist.get(index);
             bdboh.updatecol(rb.id,rb.name,rb.time,"1:30",true,rb.on,rb.timer);
             Toast.makeText(context,rb.name+" 강좌의 알림이 "+(rb.on?"켜졌습니다.":"꺼졌습니다."),Toast.LENGTH_LONG).show();
-            if(rb.on)mb.setalarm(rb.name,rb.time,rb.timer,(int)rb.id);
-            else mb.delalarm((int)rb.id);
+            if(rb.on)mb.setalarm(rb.name,rb.time,rb.timer,(int)rb.id,context);
+            else mb.delalarm((int)rb.id,context);
+            bdboh.close();
         }
     }
 
@@ -155,7 +156,8 @@ public class RecyclerBoardAdapter extends RecyclerView.Adapter<RecyclerBoardAdap
             RecyclerBoard rb = rblist.get(index);
             bdboh.updatecol(rb.id,rb.name,rb.time,"1:30",true,rb.on,rb.timer);
             Toast.makeText(context,rb.name+" 강좌의 알림이 "+returntimestring(rb.timer)+"으로 설정되었습니다",Toast.LENGTH_LONG).show();
-            mb.setalarm(rb.name,rb.time,rb.timer,(int)rb.id);
+            mb.setalarm(rb.name,rb.time,rb.timer,(int)rb.id,context);
+            bdboh.close();
         }
     }
     public static String returntimestring(int timer){

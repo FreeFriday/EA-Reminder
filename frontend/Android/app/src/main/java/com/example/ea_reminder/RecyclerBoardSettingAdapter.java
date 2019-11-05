@@ -66,11 +66,13 @@ public class RecyclerBoardSettingAdapter extends RecyclerView.Adapter<RecyclerBo
             @Override
             public void onClick(View view) {
                 BoardDBOpenHelper bdboh = new BoardDBOpenHelper(context);
+                MainBoard.delalarm((int)rbslist.get(position).id,context);
                 bdboh=bdboh.open();
                 bdboh.create();
                 bdboh.deletecol(rbslist.get(position).id);
                 rbslist.remove(position);
                 alertadapter();
+                bdboh.close();
             }
         });
         bSetOnClickListener templistener = new bSetOnClickListener(holder.recbs_name, holder.recbs_time, context,rbslist.get(position));
@@ -157,6 +159,9 @@ public class RecyclerBoardSettingAdapter extends RecyclerView.Adapter<RecyclerBo
                     bdboh.create();
                     bdboh.updatecol(rbs.id,recbs_name.getText().toString(),recbs_time.getText().toString(),rbs.length,rbs.eaon,rbs.alarm,rbs.timer);
 
+                    MainBoard.delalarm((int)rbs.id,context);
+                    MainBoard.setalarm(recbs_name.getText().toString(),recbs_time.getText().toString(),rbs.timer,(int)rbs.id,context);
+
                     recbs_name.setKeyListener(null);
                     recbs_time.setKeyListener(null);
 
@@ -166,7 +171,7 @@ public class RecyclerBoardSettingAdapter extends RecyclerView.Adapter<RecyclerBo
                     imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                     editing=!editing;
                     editingone=!editingone;
-
+                    bdboh.close();
                     alertadapter();
                 }
             }

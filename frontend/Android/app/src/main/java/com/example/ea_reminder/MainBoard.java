@@ -37,7 +37,7 @@ public class MainBoard extends AppCompatActivity {
     ArrayList<RecyclerBoard> rblist; //강좌 정보가 있는 리스트
     RecyclerBoardAdapter rba; //RecyclerViewAdapter
 
-    boolean allswitch = false;//일괄적용 스위치 값
+    boolean allswitch = true;//일괄적용 스위치 값
     int alltimer = 0;//알림 시간 일괄적용 값
 
     SharedPreferences sp; //아이디, 비번, 로그인 전적 저장 Preference
@@ -58,8 +58,8 @@ public class MainBoard extends AppCompatActivity {
         sped = sp.edit();
         ArrayList<String> name = new ArrayList<>();
         ArrayList<String> time = new ArrayList<>();
-        if(sp.getBoolean(pref_allsw,false)){
-            allswitch=true;
+        if(sp.contains(pref_allsw)){
+            allswitch=sp.getBoolean(pref_allsw,true);
         }
         if(sp.contains(pref_allbt)){
             alltimer = sp.getInt(pref_allbt,0);
@@ -88,29 +88,8 @@ public class MainBoard extends AppCompatActivity {
             sped.putString(MainActivity.pref_id,id);
             sped.putString(MainActivity.pref_pw,pw);
             sped.apply();
-            String nowname = null;
-            String nowtime="";
-            /*
             for(int i=0;i<name.size();i++){
-                if(nowname==null){
-                    nowname=name.get(i);
-                    nowtime=time.get(i);
-                }
-                else{
-                    if(nowname==name.get(i)){
-                        nowtime+=", "+time.get(i);
-                    }
-                    else{
-                        BoardSetting.Add2DB(this,nowname,nowtime,"1:30",true,true,RecyclerBoard.TIMER_10MIN);
-                        nowname=null;
-                        nowtime="";
-                    }
-                }
-            }
-            BoardSetting.Add2DB(this,nowname,nowtime,"1:30",true,true,RecyclerBoard.TIMER_10MIN);
-             */
-            for(int i=0;i<name.size();i++){
-                BoardSetting.Add2DB(this,name.get(i),time.get(i),"1:30",true,false,RecyclerBoard.TIMER_10MIN);
+                BoardSetting.Add2DB(this,name.get(i),time.get(i),"1:30",true,allswitch,alltimer);
             }
 
         }
@@ -198,6 +177,7 @@ public class MainBoard extends AppCompatActivity {
             rblist.add(temprb);
             rba.notifyDataSetChanged();
         }
+        bdboh.close();
         /*
         {
             RecyclerBoard testrb = rblist.get(0);
@@ -237,9 +217,10 @@ public class MainBoard extends AppCompatActivity {
             rblist.add(temprb);
         }
         rba.notifyDataSetChanged();
+        bdboh.close();
     }
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void setalarm(String name, String time,int offset,int requestcode){
+    public static void setalarm(String name, String time,int offset,int requestcode,Context context){
         String day="";
         int h=0;
         int m=0;
@@ -267,10 +248,10 @@ public class MainBoard extends AppCompatActivity {
             h--;
         }
         System.out.println("day="+day+",h="+Integer.toString(h)+",m="+Integer.toString(m));
-        Alarmer.setalarm(getApplicationContext(),day,h,m,name,requestcode);
+        Alarmer.setalarm(context,day,h,m,name,requestcode);
     }
-    public void delalarm(int requestcode){
-        Alarmer.deletealarm(getApplicationContext(),requestcode);
+    public static void delalarm(int requestcode,Context context){
+        Alarmer.deletealarm(context,requestcode);
     }
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(resultCode == RESULT_OK){
@@ -299,17 +280,19 @@ public class MainBoard extends AppCompatActivity {
             bdboh=bdboh.open();
             bdboh.create();
             for(int i=0;i<rba.swlist.size();i++){
-                boolean tempon = rblist.get(i).on;
-                rblist.get(i).on=allswitch;
+                if(rblist.get(i)!=null){
+                    boolean tempon = rblist.get(i).on;
+                    rblist.get(i).on=allswitch;
 
-                if(tempon!=allswitch){
-                    RecyclerBoard rb = rblist.get(i);
-                    bdboh.updatecol(rb.id,rb.name,rb.time,"1:30",true,rb.on,rb.timer);
-                    if(rb.on)setalarm(rb.name,rb.time,rb.timer,(int)rb.id);
-                    else delalarm((int)rb.id);
+                    if(tempon!=allswitch){
+                        RecyclerBoard rb = rblist.get(i);
+                        bdboh.updatecol(rb.id,rb.name,rb.time,"1:30",true,rb.on,rb.timer);
+                        if(rb.on)setalarm(rb.name,rb.time,rb.timer,(int)rb.id,context);
+                        else delalarm((int)rb.id,context);
+                    }
                 }
-
             }
+            bdboh.close();
             return null;
         }
         protected void onPostExecute(Void v){
@@ -330,10 +313,11 @@ public class MainBoard extends AppCompatActivity {
                 if(temptimer!=alltimer){
                     RecyclerBoard rb = rblist.get(i);
                     bdboh.updatecol(rb.id,rb.name,rb.time,"1:30",true,rb.on,rb.timer);
-                    if(rb.on)setalarm(rb.name,rb.time,rb.timer,(int)rb.id);
-                    else delalarm((int)rb.id);
+                    if(rb.on)setalarm(rb.name,rb.time,rb.timer,(int)rb.id,context);
+                    else delalarm((int)rb.id,context);
                 }
             }
+            bdboh.close();
             return null;
         }
         protected void onPostExecute(Void v){

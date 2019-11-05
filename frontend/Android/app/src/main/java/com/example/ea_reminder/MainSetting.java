@@ -47,6 +47,8 @@ public class MainSetting extends AppCompatActivity {
                 sped.remove(MainActivity.pref_logined);
                 sped.remove(MainActivity.pref_id);
                 sped.remove(MainActivity.pref_pw);
+                sped.remove(MainBoard.pref_allsw);
+                sped.remove(MainBoard.pref_allbt);
                 sped.commit();
                 Toast.makeText(getApplicationContext(),"로그인 정보가 삭제되었습니다.\n앱 재시작시 로그인해주세요.",Toast.LENGTH_LONG).show();
             }
@@ -75,7 +77,10 @@ public class MainSetting extends AppCompatActivity {
 
                     pbar.setVisibility(View.VISIBLE);
 
-                    MainActivity.staticlogintask lt = new MainActivity.staticlogintask(MainActivity.requrl,values,pbar,getApplicationContext(),name,time);
+                    int allbt =0;
+                    if(sp.contains(MainBoard.pref_allbt))allbt = sp.getInt(MainBoard.pref_allbt,0);
+
+                    MainActivity.staticlogintask lt = new MainActivity.staticlogintask(MainActivity.requrl,values,pbar,getApplicationContext(),name,time,sp.getBoolean(MainBoard.pref_allsw,true),allbt);
                     lt.execute();
                 }
             }

@@ -66,39 +66,41 @@ public class MainActivity extends AppCompatActivity {
 
         if(sp.contains(pref_logined)){
             go2board(null,null,null);
-            //TODO: 이미 로그인한 전적이 있다면 바로 시간표 창으로 이동
         }
         else{
-            AlertDialog ad = new AlertDialog.Builder(this).create();
-            ad.setTitle("절전 모드 해제");
-            ad.setMessage("절전 모드는 앱의 알림 기능에 영향을 줄 수 있습니다.\n하단의 확인을 누르면 설정창으로 이동합니다.");
-            ad.setButton(AlertDialog.BUTTON_NEUTRAL, "확인", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    Intent intent = new Intent();
-                    String packageName = getPackageName();
-                    PowerManager pm = (PowerManager)getSystemService(POWER_SERVICE);
+            String packageName = getPackageName();
+            PowerManager pm = (PowerManager)getSystemService(POWER_SERVICE);
+            if(!pm.isIgnoringBatteryOptimizations(packageName)){
+                AlertDialog ad = new AlertDialog.Builder(this).create();
+                ad.setTitle("절전 모드 해제");
+                ad.setMessage("절전 모드는 앱의 알림 기능에 영향을 줄 수 있습니다.\n하단의 확인을 눌러 설정 변경을 허용해주세요.");
+                ad.setButton(AlertDialog.BUTTON_NEUTRAL, "확인", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        Intent intent = new Intent();
+                        String packageName = getPackageName();
+                        PowerManager pm = (PowerManager)getSystemService(POWER_SERVICE);
 
-                    if (pm.isIgnoringBatteryOptimizations(packageName)) {
-                        //
-                        //intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                        if (pm.isIgnoringBatteryOptimizations(packageName)) {
+                            //
+                            //intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                        }
+                        else {
+                            intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                            intent.setData(Uri.parse("package:" + packageName));
+                            startActivity(intent);
+                        }
                     }
-                    else {
-                        intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                        intent.setData(Uri.parse("package:" + packageName));
-                        startActivity(intent);
-                    }
+                });
+                ad.show();
+            }
 
-                }
-            });
-            ad.show();
         }
 
         b_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 //서버에 로그인 요청 보내기
                 ContentValues values = new ContentValues();
                 values.put("id",t_id.getText().toString());
@@ -164,13 +166,17 @@ public class MainActivity extends AppCompatActivity {
         Context context;
         ArrayList<String> name = new ArrayList<>();
         ArrayList<String> time = new ArrayList<>();
-        public staticlogintask(String url, ContentValues values, View pbar, Context context,ArrayList<String> name, ArrayList<String> time){
+        boolean allsw;
+        int allbt;
+        public staticlogintask(String url, ContentValues values, View pbar, Context context,ArrayList<String> name, ArrayList<String> time,boolean allsw,int allbt){
             this.url=url;
             this.values=values;
             this.pbar=pbar;
             this.context = context;
             this.name = name;
             this.time = time;
+            this.allsw = allsw;
+            this.allbt = allbt;
         }
         @Override
         protected JSONObject doInBackground(Void... voids) {
@@ -197,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
 
                 BoardSetting.DelDB(context);
                 for(int i=0;i<name.size();i++){
-                    BoardSetting.Add2DB(context,name.get(i),time.get(i),"1:30",true,false,RecyclerBoard.TIMER_10MIN);
+                    BoardSetting.Add2DB(context,name.get(i),time.get(i),"1:30",true,allsw,allbt);
                 }
                 Toast.makeText(context,"시간표가 초기화되었습니다.",Toast.LENGTH_LONG).show();
                 return;

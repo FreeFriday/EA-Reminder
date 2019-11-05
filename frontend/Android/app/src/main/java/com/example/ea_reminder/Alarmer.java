@@ -64,6 +64,7 @@ public class Alarmer {
         Intent intent = new Intent(context, Alarm_notification.class);
         PendingIntent pintent = PendingIntent.getBroadcast(context,requestcode,intent,PendingIntent.FLAG_CANCEL_CURRENT);
         if(pintent!=null){
+            System.out.println("Alarm Deleted: RequestCode = "+requestcode);
             pintent.cancel();
             alm.cancel(pintent);
         }

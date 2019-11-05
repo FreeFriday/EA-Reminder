@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.media.Image;
 import android.os.Bundle;
@@ -35,6 +36,9 @@ public class BoardSetting extends AppCompatActivity {
 
     boolean res=false;
 
+    SharedPreferences sp;
+    boolean allsw = true;
+    int allbt = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +58,10 @@ public class BoardSetting extends AppCompatActivity {
         rbsa = new RecyclerBoardSettingAdapter(rbslist,getApplicationContext(),this);
         rv.setAdapter(rbsa);
 
+        sp = getSharedPreferences(MainActivity.prefname,MODE_PRIVATE);
+        allsw = sp.getBoolean(MainBoard.pref_allsw,true);
+        if(sp.contains(MainBoard.pref_allbt))allbt = sp.getInt(MainBoard.pref_allbt,0);
+
         //TODO: 키보드 팝업 시 RecyclerView 높이 줄이기
 
         //강좌 추가 버튼
@@ -66,8 +74,8 @@ public class BoardSetting extends AppCompatActivity {
                 ArrayList<Integer> dates = new ArrayList<Integer>();
                 ArrayList<Integer> times = new ArrayList<Integer>();//HHMM 형식
                 if(CheckNameAndTime.CheckNameAndTime(tempname,temptime,dates,times,getApplicationContext())){//형식에 맞는지 확인
-                    long tempid= Add2DB(getApplicationContext(),tempname,TimeStringMaker(dates,times),"1:30",true,false,0);
-                    RecyclerBoardSetting temprb = new RecyclerBoardSetting(tempid,tempname,TimeStringMaker(dates,times),"1:30",true,false,0);
+                    long tempid= Add2DB(getApplicationContext(),tempname,TimeStringMaker(dates,times),"1:30",true,allsw,allbt);
+                    RecyclerBoardSetting temprb = new RecyclerBoardSetting(tempid,tempname,TimeStringMaker(dates,times),"1:30",true,allsw,allbt);
                     rbslist.add(temprb);
                     //rbsa.notifyDataSetChanged();
                     rbsa.alertadapter();
@@ -93,7 +101,6 @@ public class BoardSetting extends AppCompatActivity {
         getDB(this);
     }
     public void getDB(Context context){
-        //TODO: static 함수로 바꾸기
         rbslist.clear();
         BoardDBOpenHelper bdboh = new BoardDBOpenHelper(context);
         bdboh=bdboh.open();
@@ -112,6 +119,7 @@ public class BoardSetting extends AppCompatActivity {
             rbslist.add(temprb);
             rbsa.notifyDataSetChanged();
         }
+        bdboh.close();
     }
     public static String TimeStringMaker(ArrayList<Integer> dates, ArrayList<Integer> times){
         String returner = "";
@@ -152,7 +160,12 @@ public class BoardSetting extends AppCompatActivity {
         BoardDBOpenHelper bdboh = new BoardDBOpenHelper(context);
         bdboh.open();
         bdboh.create();
-        return bdboh.insertcolumn(classname,start,length,eaon,alarm,timer);
+        long id = bdboh.insertcolumn(classname,start,length,eaon,alarm,timer);
+        if(alarm){
+            MainBoard.setalarm(classname,start,timer,(int)id,context);
+        }
+        bdboh.close();
+        return id;
     }
     public static void DelDB(Context context){
         BoardDBOpenHelper bdboh = new BoardDBOpenHelper(context);
@@ -164,6 +177,7 @@ public class BoardSetting extends AppCompatActivity {
             Alarmer.deletealarm(context,(int)nowid);
         }
         bdboh.DelDB();
+        bdboh.close();
     }
     public void setres(){
         System.out.println("Called setres()");
