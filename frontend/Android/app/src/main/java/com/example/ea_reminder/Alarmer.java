@@ -12,11 +12,12 @@ import java.util.Calendar;
 import androidx.annotation.RequiresApi;
 
 public class Alarmer {
+    public static final String alarmaction = "com.example.ea_reminder.alarming";
     @RequiresApi(api = Build.VERSION_CODES.N)
     public static void setalarm(Context context, String day, int h, int m, String name, int requestcode){
         AlarmManager alm = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, Alarm_notification.class);
-        intent.setAction("com.example.ea_reminder.alarming");
+        intent.setAction(alarmaction);
         intent.putExtra("Classname",name);
         PendingIntent pintent = PendingIntent.getBroadcast(context,requestcode,intent,PendingIntent.FLAG_CANCEL_CURRENT);
         Calendar cal = Calendar.getInstance();
@@ -62,10 +63,10 @@ public class Alarmer {
     public static void deletealarm(Context context, int requestcode){
         AlarmManager alm = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, Alarm_notification.class);
+        intent.setAction(alarmaction);
         PendingIntent pintent = PendingIntent.getBroadcast(context,requestcode,intent,PendingIntent.FLAG_CANCEL_CURRENT);
         if(pintent!=null){
             System.out.println("Alarm Deleted: RequestCode = "+requestcode);
-            pintent.cancel();
             alm.cancel(pintent);
         }
     }
