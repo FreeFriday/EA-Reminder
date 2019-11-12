@@ -63,12 +63,7 @@ public class Alarm_notification extends BroadcastReceiver {
 
         if(forcevibing) {
             Intent newintent = new Intent(context, ForceVibrate.class);
-            PendingIntent newpi = PendingIntent.getActivity(context, -1, newintent, PendingIntent.FLAG_ONE_SHOT);
-            try {
-                newpi.send();
-            } catch (PendingIntent.CanceledException e) {
-                e.printStackTrace();
-            }
+            context.startService(newintent);
         }
     }
 }

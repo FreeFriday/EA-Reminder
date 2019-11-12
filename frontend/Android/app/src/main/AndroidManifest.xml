@@ -28,7 +28,7 @@
                 <action android:name="com.example.ea_reminder.alarming"></action>
             </intent-filter>
         </receiver>
-        <activity android:name=".ForceVibrate"></activity>
+        <service android:name=".ForceVibrate"></service>
     </application>
     <uses-permission android:name="android.permission.INTERNET"/>
     <permission android:name="com.name.name.permission.C2D_MESSAGE"
