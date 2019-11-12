@@ -37,6 +37,9 @@ public class MainBoard extends AppCompatActivity {
     ArrayList<RecyclerBoard> rblist; //강좌 정보가 있는 리스트
     RecyclerBoardAdapter rba; //RecyclerViewAdapter
 
+    boolean forcevibing = true;
+    Switch forcevib;
+
     boolean allswitch = true;//일괄적용 스위치 값
     int alltimer = 0;//알림 시간 일괄적용 값
 
@@ -47,6 +50,7 @@ public class MainBoard extends AppCompatActivity {
 
     public static final String pref_allsw = "allsw";
     public static final String pref_allbt = "allbw";
+    public static final String pref_forcevib = "forcevib";
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -63,6 +67,9 @@ public class MainBoard extends AppCompatActivity {
         }
         if(sp.contains(pref_allbt)){
             alltimer = sp.getInt(pref_allbt,0);
+        }
+        if(sp.contains(pref_forcevib)){
+            forcevibing = sp.getBoolean(pref_forcevib,true);
         }
         if(sp.getBoolean(MainActivity.pref_logined,false)){
 
@@ -177,6 +184,18 @@ public class MainBoard extends AppCompatActivity {
             rba.notifyDataSetChanged();
         }
         bdboh.close();
+
+        forcevib = (Switch)findViewById(R.id.forcevib_sw);
+        forcevib.setChecked(forcevibing);
+        forcevib.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                forcevibing = forcevib.isChecked();
+                sped.putBoolean(pref_forcevib,forcevibing);
+                sped.apply();
+                Toast.makeText(context,"강제 진동이 "+(forcevibing?("활성화 되었습니다."):("비활성화 되었습니다.")),Toast.LENGTH_LONG).show();
+            }
+        });
         /*
         {
             RecyclerBoard testrb = rblist.get(0);

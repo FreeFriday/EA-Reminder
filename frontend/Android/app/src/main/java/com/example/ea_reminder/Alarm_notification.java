@@ -7,10 +7,12 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.icu.text.SymbolTable;
+import android.os.Vibrator;
 
 public class Alarm_notification extends BroadcastReceiver {
     final String apppack = "kr.ac.snu.mobile";
@@ -54,5 +56,19 @@ public class Alarm_notification extends BroadcastReceiver {
             nb.setContentIntent(pintent);
         }
         nm.notify(1,nb.build());
+
+        SharedPreferences sp = context.getSharedPreferences(MainActivity.prefname,Context.MODE_PRIVATE);
+        boolean forcevibing = true;
+        if(sp.contains(MainBoard.pref_forcevib))forcevibing=sp.getBoolean(MainBoard.pref_forcevib,true);
+
+        if(forcevibing) {
+            Intent newintent = new Intent(context, ForceVibrate.class);
+            PendingIntent newpi = PendingIntent.getActivity(context, -1, newintent, PendingIntent.FLAG_ONE_SHOT);
+            try {
+                newpi.send();
+            } catch (PendingIntent.CanceledException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
